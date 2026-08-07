@@ -1,0 +1,4 @@
+# Normalize line endings to LF for cross-platform / container consistency.
+* text=auto eol=lf
+*.png binary
+*.jpg binary

@@ -1,0 +1,96 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - "app/**"
+      - ".github/workflows/ci.yaml"
+  pull_request:
+    paths:
+      - "app/**"
+      - ".github/workflows/ci.yaml"
+
+# Allow the build job to request an OIDC token to assume an AWS role
+# (no long-lived AWS keys stored in GitHub).
+permissions:
+  contents: read
+  id-token: write
+
+env:
+  AWS_REGION: us-east-1
+  ECR_REPOSITORY: cloud-platform
+
+jobs:
+  test:
+    name: Test & lint
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: app
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+
+      - name: Install dependencies
+        run: pip install -r requirements-dev.txt
+
+      - name: Lint (ruff)
+        run: ruff check .
+
+      - name: Run tests
+        run: pytest -v
+
+  build-and-push:
+    name: Build, scan & push image
+    needs: test
+    runs-on: ubuntu-latest
+    # Only publish images from main, not from pull requests.
+    if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Build image
+        run: |
+          docker build \
+            --build-arg VERSION=${GITHUB_SHA::7} \
+            -t $ECR_REPOSITORY:${GITHUB_SHA::7} \
+            app
+
+      # Fail the build on HIGH/CRITICAL vulnerabilities before publishing.
+      - name: Scan image with Trivy
+        uses: aquasecurity/trivy-action@0.24.0
+        with:
+          image-ref: ${{ env.ECR_REPOSITORY }}:${{ github.sha }}
+          format: table
+          exit-code: "1"
+          severity: HIGH,CRITICAL
+          ignore-unfixed: true
+
+      # --- The steps below activate once Phase 2 (Terraform) provisions ECR
+      #     and the GitHub OIDC IAM role. Set the AWS_ROLE_ARN secret then. ---
+      - name: Configure AWS credentials (OIDC)
+        if: ${{ secrets.AWS_ROLE_ARN != '' }}
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: ${{ secrets.AWS_ROLE_ARN }}
+          aws-region: ${{ env.AWS_REGION }}
+
+      - name: Login to Amazon ECR
+        if: ${{ secrets.AWS_ROLE_ARN != '' }}
+        id: ecr
+        uses: aws-actions/amazon-ecr-login@v2
+
+      - name: Tag & push to ECR
+        if: ${{ secrets.AWS_ROLE_ARN != '' }}
+        run: |
+          REGISTRY=${{ steps.ecr.outputs.registry }}
+          SHA=${GITHUB_SHA::7}
+          docker tag $ECR_REPOSITORY:$SHA $REGISTRY/$ECR_REPOSITORY:$SHA
+          docker tag $ECR_REPOSITORY:$SHA $REGISTRY/$ECR_REPOSITORY:latest
+          docker push $REGISTRY/$ECR_REPOSITORY:$SHA
+          docker push $REGISTRY/$ECR_REPOSITORY:latest
