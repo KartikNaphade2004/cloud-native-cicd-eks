@@ -1,6 +1,6 @@
 # ---- Build stage ----
 # Install dependencies into a venv so we can copy only what's needed.
-FROM python:3.12-slim AS build
+FROM python:3.14-slim AS build
 
 WORKDIR /app
 ENV PIP_NO_CACHE_DIR=1 PIP_DISABLE_PIP_VERSION_CHECK=1
@@ -10,7 +10,7 @@ RUN python -m venv /opt/venv \
     && /opt/venv/bin/pip install -r requirements.txt
 
 # ---- Runtime stage ----
-FROM python:3.12-slim
+FROM python:3.14-slim
 
 # Create a non-root user to run the app.
 RUN useradd --create-home --uid 10001 appuser
