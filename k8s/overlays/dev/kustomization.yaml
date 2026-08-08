@@ -1,0 +1,23 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+
+namespace: cloud-platform-dev
+
+resources:
+  - namespace.yaml
+  - ../../base
+
+# Dev runs a single replica to conserve cluster resources.
+replicas:
+  - name: cloud-platform
+    count: 1
+
+# Stamp the running version so /  and metrics show the environment.
+patches:
+  - target:
+      kind: Deployment
+      name: cloud-platform
+    patch: |-
+      - op: replace
+        path: /spec/template/spec/containers/0/env/0/value
+        value: "dev"

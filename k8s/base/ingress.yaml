@@ -1,0 +1,25 @@
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: cloud-platform
+  labels:
+    app.kubernetes.io/name: cloud-platform
+  annotations:
+    # Requires the AWS Load Balancer Controller in the cluster. It provisions
+    # an internet-facing Application Load Balancer routing to the pods.
+    alb.ingress.kubernetes.io/scheme: internet-facing
+    alb.ingress.kubernetes.io/target-type: ip
+    alb.ingress.kubernetes.io/healthcheck-path: /healthz
+    alb.ingress.kubernetes.io/listen-ports: '[{"HTTP": 80}]'
+spec:
+  ingressClassName: alb
+  rules:
+    - http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: cloud-platform
+                port:
+                  number: 80
