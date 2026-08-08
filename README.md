@@ -64,7 +64,7 @@ metrics and Grafana visualizes them. No manual steps after `git push`.
 ## Build phases
 
 - [x] **Phase 1** — App, Docker, CI pipeline
-- [ ] **Phase 2** — Terraform infra (VPC, EKS, ECR)
+- [x] **Phase 2** — Terraform infra (VPC, EKS, ECR, GitHub OIDC)
 - [ ] **Phase 3** — Kubernetes manifests (Kustomize)
 - [ ] **Phase 4** — GitOps with ArgoCD
 - [ ] **Phase 5** — Monitoring (Prometheus + Grafana)
