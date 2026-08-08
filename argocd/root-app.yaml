@@ -1,0 +1,25 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: root
+  namespace: argocd
+  finalizers:
+    - resources-finalizer.argocd.argoproj.io
+spec:
+  project: cloud-native-cicd
+
+  # The "app of apps" pattern: this single Application points at the folder of
+  # child Application manifests. Applying it once makes ArgoCD manage them all.
+  source:
+    repoURL: https://github.com/KartikNaphade2004/cloud-native-cicd-eks.git
+    targetRevision: main
+    path: argocd/apps
+
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: argocd
+
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true

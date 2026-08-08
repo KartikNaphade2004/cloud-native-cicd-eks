@@ -1,0 +1,24 @@
+apiVersion: argoproj.io/v1alpha1
+kind: AppProject
+metadata:
+  name: cloud-native-cicd
+  namespace: argocd
+spec:
+  description: Cloud-native CI/CD portfolio project
+
+  # Only this repo may be used as a source.
+  sourceRepos:
+    - https://github.com/KartikNaphade2004/cloud-native-cicd-eks.git
+
+  # Allow deploying to any namespace on the in-cluster API server.
+  destinations:
+    - server: https://kubernetes.default.svc
+      namespace: "*"
+
+  # Permit the cluster-scoped and namespaced resources this app needs.
+  clusterResourceWhitelist:
+    - group: ""
+      kind: Namespace
+  namespaceResourceWhitelist:
+    - group: "*"
+      kind: "*"
