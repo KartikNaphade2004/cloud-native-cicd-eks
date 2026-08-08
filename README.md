@@ -1,11 +1,24 @@
 # Cloud-Native CI/CD Platform on AWS EKS
 
+[![CI](https://github.com/KartikNaphade2004/cloud-native-cicd-eks/actions/workflows/ci.yaml/badge.svg)](https://github.com/KartikNaphade2004/cloud-native-cicd-eks/actions/workflows/ci.yaml)
+[![Security](https://github.com/KartikNaphade2004/cloud-native-cicd-eks/actions/workflows/security.yaml/badge.svg)](https://github.com/KartikNaphade2004/cloud-native-cicd-eks/actions/workflows/security.yaml)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
+
+![Python](https://img.shields.io/badge/Python-FastAPI-3776AB?logo=python&logoColor=white)
+![Docker](https://img.shields.io/badge/Docker-multi--stage-2496ED?logo=docker&logoColor=white)
+![Terraform](https://img.shields.io/badge/Terraform-IaC-7B42BC?logo=terraform&logoColor=white)
+![AWS EKS](https://img.shields.io/badge/AWS-EKS-FF9900?logo=amazonaws&logoColor=white)
+![Kubernetes](https://img.shields.io/badge/Kubernetes-Kustomize-326CE5?logo=kubernetes&logoColor=white)
+![ArgoCD](https://img.shields.io/badge/ArgoCD-GitOps-EF7B4D?logo=argo&logoColor=white)
+![Prometheus](https://img.shields.io/badge/Prometheus-Grafana-E6522C?logo=prometheus&logoColor=white)
+
 An end-to-end DevOps project demonstrating the full software delivery lifecycle:
-a containerized Go microservice built, tested, scanned, and shipped through
-GitHub Actions, provisioned on **AWS EKS** with **Terraform**, deployed via
+a containerized Python (FastAPI) microservice built, tested, scanned, and shipped
+through GitHub Actions, provisioned on **AWS EKS** with **Terraform**, deployed via
 **GitOps (ArgoCD)**, and observed with **Prometheus + Grafana**.
 
 > Built as a portfolio project to showcase production-grade DevOps practices.
+> **▶ Full end-to-end demo runbook: [docs/DEMO.md](docs/DEMO.md)**
 
 ## Architecture
 
@@ -46,19 +59,20 @@ metrics and Grafana visualizes them. No manual steps after `git push`.
 | Orchestration  | AWS EKS (Kubernetes)          |
 | CD / GitOps    | ArgoCD                        |
 | Observability  | Prometheus + Grafana          |
-| Security       | Trivy image scanning          |
+| Security       | Trivy + Checkov (image, deps, IaC) |
 
 ## Repository layout
 
 ```
 .
-├── app/            # Go microservice + Dockerfile
-├── .github/        # CI workflows
-├── infra/          # Terraform: VPC, EKS, ECR, IAM
-├── k8s/            # Kubernetes manifests (Kustomize)
-├── argocd/         # ArgoCD Application definitions
-├── monitoring/     # Prometheus + Grafana config
-└── Makefile        # Common commands
+├── app/            # Python (FastAPI) microservice + tests + Dockerfile
+├── .github/        # CI + security workflows, Dependabot
+├── infra/          # Terraform: VPC, EKS, ECR, GitHub OIDC/IAM
+├── k8s/            # Kubernetes manifests (Kustomize base + overlays)
+├── argocd/         # ArgoCD Applications (app-of-apps)
+├── monitoring/     # Prometheus + Grafana + alerts
+├── docs/           # End-to-end demo runbook
+└── Makefile        # Common commands (run `make help`)
 ```
 
 ## Build phases
@@ -68,7 +82,10 @@ metrics and Grafana visualizes them. No manual steps after `git push`.
 - [x] **Phase 3** — Kubernetes manifests (Kustomize base + dev/prod overlays)
 - [x] **Phase 4** — GitOps with ArgoCD (app-of-apps)
 - [x] **Phase 5** — Monitoring (Prometheus + Grafana + alerts)
-- [ ] **Phase 6** — Polish, diagrams, DevSecOps
+- [x] **Phase 6** — Polish, badges, LICENSE, DevSecOps (Trivy/Checkov), demo runbook
+
+**✅ All phases complete.** See **[docs/DEMO.md](docs/DEMO.md)** to run the whole
+thing end-to-end on AWS.
 
 ## Cost control
 

@@ -1,0 +1,25 @@
+version: 2
+updates:
+  # Python app dependencies
+  - package-ecosystem: pip
+    directory: /app
+    schedule:
+      interval: weekly
+
+  # GitHub Actions versions
+  - package-ecosystem: github-actions
+    directory: /
+    schedule:
+      interval: weekly
+
+  # Terraform providers/modules
+  - package-ecosystem: terraform
+    directory: /infra
+    schedule:
+      interval: weekly
+
+  # Base image in the Dockerfile
+  - package-ecosystem: docker
+    directory: /app
+    schedule:
+      interval: weekly
