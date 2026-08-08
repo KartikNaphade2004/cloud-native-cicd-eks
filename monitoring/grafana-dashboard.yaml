@@ -1,0 +1,111 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: cloud-platform-dashboard
+  namespace: monitoring
+  labels:
+    # This label makes the Grafana sidecar auto-import the dashboard.
+    grafana_dashboard: "1"
+data:
+  cloud-platform.json: |
+    {
+      "title": "Cloud Platform - App Overview",
+      "uid": "cloud-platform-app",
+      "schemaVersion": 39,
+      "editable": true,
+      "time": { "from": "now-1h", "to": "now" },
+      "refresh": "15s",
+      "templating": {
+        "list": [
+          {
+            "name": "datasource",
+            "type": "datasource",
+            "query": "prometheus",
+            "current": {},
+            "hide": 0
+          }
+        ]
+      },
+      "panels": [
+        {
+          "type": "stat",
+          "title": "Request rate",
+          "gridPos": { "h": 6, "w": 8, "x": 0, "y": 0 },
+          "datasource": { "type": "prometheus", "uid": "${datasource}" },
+          "fieldConfig": { "defaults": { "unit": "reqps" } },
+          "targets": [
+            { "refId": "A", "expr": "sum(rate(app_http_requests_total[5m]))" }
+          ]
+        },
+        {
+          "type": "stat",
+          "title": "5xx error ratio",
+          "gridPos": { "h": 6, "w": 8, "x": 8, "y": 0 },
+          "datasource": { "type": "prometheus", "uid": "${datasource}" },
+          "fieldConfig": {
+            "defaults": {
+              "unit": "percentunit",
+              "thresholds": {
+                "mode": "absolute",
+                "steps": [
+                  { "color": "green", "value": null },
+                  { "color": "red", "value": 0.05 }
+                ]
+              }
+            }
+          },
+          "targets": [
+            {
+              "refId": "A",
+              "expr": "sum(rate(app_http_requests_total{status=~\"5..\"}[5m])) / clamp_min(sum(rate(app_http_requests_total[5m])), 1)"
+            }
+          ]
+        },
+        {
+          "type": "stat",
+          "title": "p95 latency",
+          "gridPos": { "h": 6, "w": 8, "x": 16, "y": 0 },
+          "datasource": { "type": "prometheus", "uid": "${datasource}" },
+          "fieldConfig": { "defaults": { "unit": "s" } },
+          "targets": [
+            {
+              "refId": "A",
+              "expr": "histogram_quantile(0.95, sum by (le) (rate(app_http_request_duration_seconds_bucket[5m])))"
+            }
+          ]
+        },
+        {
+          "type": "timeseries",
+          "title": "Requests/sec by status",
+          "gridPos": { "h": 9, "w": 12, "x": 0, "y": 6 },
+          "datasource": { "type": "prometheus", "uid": "${datasource}" },
+          "fieldConfig": { "defaults": { "unit": "reqps" } },
+          "targets": [
+            {
+              "refId": "A",
+              "expr": "sum by (status) (rate(app_http_requests_total[5m]))",
+              "legendFormat": "{{status}}"
+            }
+          ]
+        },
+        {
+          "type": "timeseries",
+          "title": "Latency (p50 / p95)",
+          "gridPos": { "h": 9, "w": 12, "x": 12, "y": 6 },
+          "datasource": { "type": "prometheus", "uid": "${datasource}" },
+          "fieldConfig": { "defaults": { "unit": "s" } },
+          "targets": [
+            {
+              "refId": "A",
+              "expr": "histogram_quantile(0.50, sum by (le) (rate(app_http_request_duration_seconds_bucket[5m])))",
+              "legendFormat": "p50"
+            },
+            {
+              "refId": "B",
+              "expr": "histogram_quantile(0.95, sum by (le) (rate(app_http_request_duration_seconds_bucket[5m])))",
+              "legendFormat": "p95"
+            }
+          ]
+        }
+      ]
+    }

@@ -1,0 +1,38 @@
+# Helm values for the kube-prometheus-stack chart.
+# Installs Prometheus, Grafana, Alertmanager, and the Prometheus Operator.
+
+prometheus:
+  prometheusSpec:
+    retention: 7d
+    # Discover ServiceMonitors/PrometheusRules in ALL namespaces, not just
+    # those carrying this Helm release's label.
+    serviceMonitorSelectorNilUsesHelmValues: false
+    ruleSelectorNilUsesHelmValues: false
+    podMonitorSelectorNilUsesHelmValues: false
+    resources:
+      requests:
+        cpu: 100m
+        memory: 400Mi
+      limits:
+        memory: 800Mi
+
+grafana:
+  # For a demo. In production use an existing secret instead of a literal.
+  adminPassword: "admin"
+  defaultDashboardsEnabled: true
+  # The sidecar auto-imports any ConfigMap labeled grafana_dashboard: "1".
+  sidecar:
+    dashboards:
+      enabled: true
+      label: grafana_dashboard
+      searchNamespace: ALL
+  service:
+    type: ClusterIP
+
+# Keep the demo lean.
+alertmanager:
+  alertmanagerSpec:
+    resources:
+      requests:
+        cpu: 10m
+        memory: 32Mi
