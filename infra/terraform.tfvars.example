@@ -1,0 +1,12 @@
+# Copy to terraform.tfvars and adjust as needed.
+# terraform.tfvars is gitignored so your values stay local.
+
+project     = "cloud-native-cicd"
+environment = "dev"
+region      = "us-east-1"
+
+cluster_version     = "1.30"
+node_instance_types = ["t3.medium"]
+node_desired_size   = 2
+
+github_repo = "KartikNaphade2004/cloud-native-cicd-eks"
