@@ -9,23 +9,30 @@ GitHub Actions, provisioned on **AWS EKS** with **Terraform**, deployed via
 
 ## Architecture
 
+```mermaid
+flowchart TD
+    Dev["👩‍💻 Developer<br/>write code · git push"] --> CI
+
+    subgraph GH["GitHub Actions — CI"]
+        CI["test → lint → Trivy scan → build image"]
+    end
+
+    CI -->|push image| ECR["Amazon ECR<br/>container registry"]
+
+    subgraph AWS["AWS Cloud — provisioned by Terraform (VPC · IAM)"]
+        ECR --> Argo["ArgoCD — GitOps<br/>syncs Git → cluster"]
+        Argo -->|auto-deploy| EKS
+        subgraph EKS["AWS EKS cluster (Kubernetes)"]
+            App["Deployment + Service<br/>Ingress + HPA"]
+            Prom["Prometheus"] --> Graf["Grafana<br/>dashboards & alerts"]
+            App -->|scrape metrics| Prom
+        end
+    end
 ```
-Developer ──push──> GitHub ──> GitHub Actions (CI)
-                                  │  test → lint → Trivy scan → build → push image
-                                  ▼
-                              Amazon ECR (image registry)
-                                  │
-                          ArgoCD (GitOps CD) watches this repo
-                                  ▼
-                        ┌──────────────────────────┐
-                        │      AWS EKS cluster       │
-                        │  Deployment + Service +    │
-                        │  Ingress + HPA             │
-                        │                            │
-                        │  Prometheus  ──> Grafana   │
-                        └──────────────────────────┘
-                        (VPC, subnets, IAM via Terraform)
-```
+
+**Flow:** you push code → CI tests, scans, and builds a container → the image lands in
+Amazon ECR → ArgoCD notices and deploys it to the EKS cluster → Prometheus scrapes
+metrics and Grafana visualizes them. No manual steps after `git push`.
 
 ## Tech stack
 
